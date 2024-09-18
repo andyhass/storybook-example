@@ -48,6 +48,6 @@ jobs:
           workingDir: frontend
           # token: ${{ secrets.GITHUB_TOKEN }}
           # Chromatic projectToken, refer to the manage page to obtain it.
-          projectToken: chpt_06e1cb989ce5e34
+          CHROMATIC_PROJECT_TOKEN: chpt_06e1cb989ce5e34
           onlyChanged: true
           skip: ${{ steps.service-changed.outputs.result == 'false' }}

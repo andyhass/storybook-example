@@ -42,6 +42,8 @@ jobs:
         working-directory: frontend
         # Adds Chromatic as a step in the workflow
       - name: Publish to Chromatic
+        env:
+          CHROMATIC_PROJECT_TOKEN: chpt_06e1cb989ce5e34
         uses: chromaui/action@v1
         # Chromatic GitHub Action options
         with:

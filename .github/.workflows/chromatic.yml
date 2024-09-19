@@ -1,26 +1,53 @@
-# .github/workflows/chromatic.yml
-
 # Workflow name
 name: "Chromatic"
 
 # Event for the workflow
-on: push
+on:
+  # Chromatic needs the commit sha of master to use as image base for comparisons
+  push:
+    branches:
+      - master
+  pull_request:
+    types: [opened, synchronize]
 
 # List of jobs
 jobs:
   chromatic-deployment:
     # Operating System
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     # Job steps
     steps:
+      - name: Check if service has changed
+        uses: actions/github-script@0.9.0
+        id: service-changed
+        with:
+          result-encoding: string
+          script: |
+            const result = await github.pulls.listFiles({
+              owner: context.payload.repository.owner.login,
+              repo: context.payload.repository.name,
+              pull_number: context.payload.number,
+              per_page: 100
+            })
+            const serviceChanged = result.data.filter(f => f.filename.startsWith("frontend/")).length > 0
+            console.log(serviceChanged)
+            return serviceChanged
+
       - uses: actions/checkout@v1
       - name: Install dependencies
-        # 👇 Install dependencies with the same package manager used in the project (replace it as needed), e.g. yarn, npm, pnpm
         run: yarn
-        # 👇 Adds Chromatic as a step in the workflow
+        working-directory: frontend
+        # Adds Chromatic as a step in the workflow
       - name: Publish to Chromatic
         uses: chromaui/action@v1
         # Chromatic GitHub Action options
         with:
-          # 👇 Chromatic projectToken, refer to the manage page to obtain it.
+          workingDir: frontend
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # Chromatic projectToken, refer to the manage page to obtain it.
           projectToken: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+          onlyChanged: true
+          skip: ${{ steps.service-changed.outputs.result == 'false' }}
